@@ -47,6 +47,33 @@ case_element_with_attribute = expected @=? actual
     actual = [$xmlQQ| <foo name="Pell e\\" /> |]
     expected = element { elName = QName "foo" Nothing Nothing , elAttribs = [Attr (QName "name" Nothing Nothing) "Pell e\\\\"] }
 
+case_simple_element_with_close_tag_and_cref = expected @=? actual
+  where actual = [$xmlQQ| <ns:apa>Banan</ns:apa> |]
+        expected = element { elName = QName "apa" Nothing (Just"ns"), elContent = [CRef "Banan"] }  
+
+case_apa_with_foo = expected @=? actual
+  where actual = [$xmlQQ| <apa><foo></foo></apa> |]
+        expected =
+          element {
+            elName = QName "apa" Nothing Nothing,
+            elContent = [ Elem element { elName = QName "foo" Nothing Nothing } ]
+          }
+
+case_multiline_and_multielement = expected @=? actual
+  where
+    actual = [$xmlQQ|
+<apa>
+  <foo>Some text </foo>
+</apa>
+|]
+    expected = element {
+      elName = QName "apa" Nothing Nothing,
+      elContent = [
+        Elem element {
+          elName = QName "foo" Nothing Nothing,
+          elContent = [ CRef "Some text " ]
+        }]
+    }
 
 -- helpers
 

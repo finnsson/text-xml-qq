@@ -30,90 +30,58 @@ xmlExp txt =
     Left err -> error $ "Error in jsonExp: " ++ show err
     Right val -> xmlValue val
   where
-    parsed' = parse xmlParser "txt" txt
+    parsed' = parse xmlElementParser "txt" txt
 
 -- Data types to Exp
 
-xmlValue :: XmlValue -> ExpQ
-xmlValue (XmlElementValue name ns attrs) =
-  
-  [| Element { elName = QName name Nothing ns, elAttribs = attrs', elContent = [], elLine = Nothing } |]
-  where
-    attrs' = map xmlAttr attrs
-  -- RecConE (mkName "Text.XML.Light.Types.Element") list
-  --  where
-  --   list = 
-  --    [(mkName "Text.XML.Light.Types.elName", AppE (AppE (AppE (ConE $ mkName "Text.XML.Light.Types.QName") (LitE (StringL name))) (ConE (mkName "Data.Maybe.Nothing"))) nsE)
-  --    ,(mkName "Text.XML.Light.Types.elAttribs" ,ConE (mkName "[]"))
-  --    ,(mkName "Text.XML.Light.Types.elContent" ,ConE (mkName "[]"))
-  --    ,(mkName "Text.XML.Light.Types.elLine",ConE (mkName "Data.Maybe.Nothing")) ]
-  --   nsE = maybe (ConE $ mkName "Data.Maybe.Nothing") (\n -> (AppE (ConE $ mkName "Data.Maybe.Just") (LitE (StringL n)))) ns
- --error "Not defined"
-
--- xmlAttr :: XmlAttr -> ExpQ
-xmlAttr :: XmlAttr -> Attr
-xmlAttr (XmlAttr name ns value) = Attr (QName name Nothing ns) value
-
--- Data types
-
-data XmlValue =
-  XmlElementValue {
-    xmlElementValueName :: String,
-    xmlElementValueNS :: Maybe String,
-    xmlElementValueAttrs :: [XmlAttr]
-  }
-
-data XmlAttr =
-  XmlAttr {
-    xmlAttrName :: String,
-    xmlAttrNS :: Maybe String,
-    xmlAttrValue :: String
-  }
-
--- Parser
-
-type XmlParser = Parser XmlValue
-
-type XmlAttrParser = Parser XmlAttr
+xmlValue :: Element -> ExpQ
+xmlValue el = -- (XmlElementValue name ns attrs) =
+  [| el |]
 
 
-xmlParser :: XmlParser
-xmlParser = do
-  spaces
-  res <- xmlElementParser
-  spaces
-  return $ res
-
-xmlElementParser :: XmlParser
+xmlElementParser :: Parser Element
 xmlElementParser = do
   spaces
   char '<'
   (name,ns) <- nameParser
   spaces
-  attrs <- many $ try xmlAttrParser
+  attrs <- many $ try attrParser
   spaces
   -- string "/>"
-  closeTag <|> (openCloseTag name ns)
+  contents <- closeTag <|> (openCloseTag name ns)
   spaces
-  return $ XmlElementValue name ns attrs
+  return $ blank_element { elName = (QName name Nothing ns), elAttribs = attrs, elContent = contents }
   
-closeTag :: Parser String
-closeTag = do string "/>"
+closeTag :: Parser [Content]
+closeTag = do
+  string "/>"
+  return []
 
-openCloseTag :: String -> Maybe String -> Parser String
+openCloseTag :: String -> Maybe String -> Parser [Content]
 openCloseTag name ns = do
-  string $ "></" ++ (ns' ++ name') ++ ">"
+  -- string ">"
+  contents <- between (string ">") (string "</") (many contentParser)
+  string $ (ns' ++ name') ++ ">"
+  return contents
   where
     name' = name
     ns' = maybe "" (\n -> n ++ ":") ns
  
-xmlAttrParser :: XmlAttrParser 
-xmlAttrParser = do
+attrParser :: Parser Attr 
+attrParser = do
   spaces
   (name,ns) <- nameParser
   char '='
-  value <- between (string "\"") (string "\"") (chars) -- alphaNum)
-  return $ XmlAttr name ns value
+  value <- between (string "\"") (string "\"") (chars)
+  return $ Attr (QName name Nothing ns) value
+
+contentParser :: Parser Content
+contentParser = do
+  content <- (try xmlElementParser >>= return . Elem) <|> (crefParser >>= return . CRef)
+  return content
+
+crefParser :: Parser String
+crefParser = many1 (noneOf "><")
 
 nameParser :: Parser (String,Maybe String)
 nameParser = do
@@ -135,3 +103,5 @@ symbol = many1 (noneOf "\\ \"/:;><$=")
 
 chars :: CharParser () String
 chars = many (noneOf "\"")
+
+

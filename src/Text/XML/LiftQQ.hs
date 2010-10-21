@@ -20,3 +20,11 @@ import Language.Haskell.TH.Lift
 $(deriveLift (mkName "Text.XML.Light.Types.QName"))
 
 $(deriveLift (mkName "Text.XML.Light.Types.Attr"))
+
+$(deriveLift (mkName "Text.XML.Light.Types.Element"))
+
+$(deriveLift (mkName "Text.XML.Light.Types.Content"))
+
+$(deriveLift (mkName "Text.XML.Light.Types.CData"))
+
+$(deriveLift (mkName "Text.XML.Light.Types.CDataKind"))
