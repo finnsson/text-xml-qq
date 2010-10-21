@@ -15,7 +15,6 @@ import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Error
 
 import Language.Haskell.Meta.Parse
-import Language.Haskell.TH.Lift
 
 xmlQQ :: QuasiQuoter
 xmlQQ = QuasiQuoter xmlExp xmlPat
