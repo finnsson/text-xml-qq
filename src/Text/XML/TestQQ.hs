@@ -75,6 +75,12 @@ case_multiline_and_multielement = expected @=? actual
         }]
     }
 
+case_var_as_name = expected @=? actual
+  where
+    actual = [$xmlQQ| <{foo} /> |]
+    foo = "bar"
+    expected = element { elName = QName "bar" Nothing Nothing }
+
 -- helpers
 
 element =
