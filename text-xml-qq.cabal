@@ -13,7 +13,14 @@ Version:             0.1
 Synopsis:            Quasiquoter for xml. XML DSL in Haskell.
 
 -- A longer description of the package.
--- Description:         
+Description:         
+    XML quasiquoter. Can convert XML code into Haskell data structures compile time.
+    .
+    At the moment only Text.XML.Light (xml-package) backend.
+    .
+    Supports namespaces, attributes, embedding Haskell variables etc.
+    .
+    See github for more information and examples of usage.
 
 -- URL for the project homepage or repository.
 Homepage:            http://www.github.com/finnsson/text-xml-qq

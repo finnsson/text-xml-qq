@@ -1,5 +1,48 @@
 {-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell -XQuasiQuotes -XUndecidableInstances #-}
 
+
+-- | The XML quasiquoter.
+--    
+--    Given the variables
+--    
+--      >  url = "google.se"
+--      >  elem = "gmail"
+--      >  attrNs = "something"
+--      >  attrName = "Pelle"
+--      >  attrValue = "Arne"
+--      >  elemCont = CRef "testing"
+--      >  cont1 = Elem $ element { elName = qname "hej" }
+--      >  cont2 = CRef "other test"
+--    
+--    the code
+--    
+--      >   [$xmlQQ|
+--      >   <{url}:{elem} {attrNs}:{attrName}={attrValue} attr="cool">
+--      >     <elem ns1:elem1="1" ns2:elem2="2"><<elemCont>></elem>
+--      >     <elem />
+--      >     <el />
+--      >     <<cont1>>
+--      >     <<cont2>>
+--      >   </{url}:{elem}>
+--      >   |]
+--    
+--    will generate the data structure
+--    
+--      >   element {
+--      >     elName = QName elem Nothing (Just url),
+--      >     elAttribs = [Attr (QName attrName Nothing (Just attrNs)) attrValue,
+--      >                  Attr (qname "attr") "cool"],
+--      >     elContent = [
+--      >       (Elem $ element { elName = qname "elem",
+--      >                         elAttribs = [Attr (QName "elem1" Nothing (Just "ns1")) "1",
+--      >                                      Attr (QName "elem2" Nothing (Just "ns2")) "2"],
+--      >                         elContent = [elemCont]
+--      >                        }),
+--      >        (Elem $ element { elName = qname "elem" }),
+--      >        (Elem $ element { elName = qname "el" }),
+--      >        cont1,
+--      >        cont2]
+--      >   }
 module Text.XML.QQ (xmlQQ) where
 
 -- import Text.XML.Light
@@ -13,6 +56,7 @@ import Data.Maybe
 -- import Data.Ratio
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Error
+
 
 xmlQQ :: QuasiQuoter
 xmlQQ = QuasiQuoter xmlExp xmlPat
