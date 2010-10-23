@@ -50,9 +50,10 @@ stringmetaToExp (StringMetaVar s) = VarE $ mkName s
 
 attrToExp :: AttrMeta -> Exp
 attrToExp (Attr name val) =
-  AppE (AppE (ConE nAttr) name') (LitE (StringL val))
+  AppE (AppE (ConE nAttr) name') val' -- (LitE (StringL val))
   where
     name' = qnameToExp name
+    val' = stringmetaToExp val
 
 contentToExp :: ContentMeta -> Exp
 contentToExp (Elem e) = AppE (ConE nElem) (elementToExp e)
@@ -79,7 +80,7 @@ blank_meta_element = Element (QName (StringMetaNormal "") Nothing Nothing) [] []
 data AttrMeta =
   Attr {
     attrKey :: QNameMeta,
-    attrVal :: String
+    attrVal :: StringMeta
   }
 
 data ElementMeta = 
@@ -154,12 +155,14 @@ attrParser = do
   spaces
   name <- nameParser
   char '='
-  value <- between (string "\"") (string "\"") (chars)
+  value <- metaStringParser --between (string "\"") (string "\"") (chars)
   return $ Attr name value
 
 contentParser :: Parser ContentMeta
 contentParser = do
+  spaces
   content <- (try contentVarParser) <|> (try xmlElementParser >>= return . Elem) <|> (crefParser >>= return . CRef)
+  spaces
   return content
 
 contentVarParser :: Parser ContentMeta
@@ -187,6 +190,17 @@ nameParser = do
 
 
 -- helpers
+
+metaStringParser :: Parser StringMeta
+metaStringParser = do
+  metaNormalStringParser <|> metaVarSymbolParser
+
+metaNormalStringParser :: Parser StringMeta
+metaNormalStringParser = do
+  char '"'
+  s <- chars
+  char '"'
+  return $ StringMetaNormal s
 
 metaSymbolParser :: Parser StringMeta
 metaSymbolParser = do

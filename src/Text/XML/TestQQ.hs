@@ -89,11 +89,63 @@ case_var_as_ns = expected @=? actual
 
 case_var_as_cref = expected @=? actual
   where
-    actual = [$xmlQQ| <ape><<someVal>></ape> |]
+    actual = [$xmlQQ| <ape>  <<someVal>></ape> |]
     expected = element { elName = QName "ape" Nothing Nothing, elContent = [CRef "apa"] }
     someVal = CRef "apa"
 
+case_var_as_attr_value = expected @=? actual
+  where
+    actual = [$xmlQQ| <monkey bar={foo} /> |]
+    expected = element { elName = qname "monkey", elAttribs = [Attr (qname "bar") "cool"] }
+    foo = "cool"
+
+
+case_var_as_attr_name = expected @=? actual
+  where
+    actual = [$xmlQQ| <monkey {foo}="cool" /> |]
+    expected = element { elName = qname "monkey", elAttribs = [Attr (qname "bar") "cool"] }
+    foo = "bar"
+
+case_mega_test = expected @=? actual
+  where
+    actual = [$xmlQQ|
+<{url}:{elem} {attrNs}:{attrName}={attrValue} attr="cool">
+  <elem ns1:elem1="1" ns2:elem2="2"><<elemCont>></elem>
+  <elem />
+  <el />
+  <<cont1>>
+<<cont2>>
+</{url}:{elem}>
+|]
+    url = "google.se"
+    elem = "gmail"
+    attrNs = "something"
+    attrName = "Pelle"
+    attrValue = "Arne"
+    elemCont = CRef "testing"
+    cont1 = Elem $ element { elName = qname "hej" }
+    cont2 = CRef "other test"
+    expected =
+      element {
+        elName = QName elem Nothing (Just url),
+        elAttribs = [Attr (QName attrName Nothing (Just attrNs)) attrValue,
+                     Attr (qname "attr") "cool"],
+        elContent = [
+          (Elem $ element { elName = qname "elem",
+                            elAttribs = [Attr (QName "elem1" Nothing (Just "ns1")) "1",
+                                         Attr (QName "elem2" Nothing (Just "ns2")) "2"],
+                            elContent = [elemCont]
+                           }),
+           (Elem $ element { elName = qname "elem" }),
+           (Elem $ element { elName = qname "el" }),
+           cont1,
+           cont2]
+      }
+
+
 -- helpers
+
+qname n = QName n Nothing Nothing
 
 element =
   Element {
