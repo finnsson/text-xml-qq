@@ -52,7 +52,7 @@ hs-source-dirs: src
 Exposed-modules:     Text.XML.QQ
   
   -- Packages needed in order to build this package.
-Build-depends:       xml, haskell-src-meta >= 0.1, parsec >= 3.1, base >= 4.2 && < 5, template-haskell
+Build-depends:       xml, parsec >= 3.1, base >= 4.2 && < 5, template-haskell
   
   -- Modules not exported by this package.
   -- Other-modules:       

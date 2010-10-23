@@ -14,8 +14,6 @@ import Data.Maybe
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Error
 
-import Language.Haskell.Meta.Parse
-
 xmlQQ :: QuasiQuoter
 xmlQQ = QuasiQuoter xmlExp xmlPat
 
@@ -59,6 +57,7 @@ attrToExp (Attr name val) =
 contentToExp :: ContentMeta -> Exp
 contentToExp (Elem e) = AppE (ConE nElem) (elementToExp e)
 contentToExp (CRef s) = AppE (ConE nCRef) (LitE (StringL s))
+contentToExp (ContentVar v) = VarE $ mkName v
 contentToExp _ = error "Case Text in contentToExp is not implemented yet."
 
 nElem = mkName "Text.XML.Light.Types.Elem"
@@ -104,12 +103,13 @@ data StringMeta =
 
 getStringMeta :: StringMeta -> String
 getStringMeta (StringMetaNormal n) = n
-getStringMeta (StringMetaVar n) = n
+getStringMeta (StringMetaVar n) = "{" ++ n ++ "}"
 
 data ContentMeta =
   Elem ElementMeta 
   | Text CDataMeta
   | CRef String
+  | ContentVar String
 
 data CDataMeta =
   CData	{
@@ -159,8 +159,15 @@ attrParser = do
 
 contentParser :: Parser ContentMeta
 contentParser = do
-  content <- (try xmlElementParser >>= return . Elem) <|> (crefParser >>= return . CRef)
+  content <- (try contentVarParser) <|> (try xmlElementParser >>= return . Elem) <|> (crefParser >>= return . CRef)
   return content
+
+contentVarParser :: Parser ContentMeta
+contentVarParser = do
+  string "<<"
+  s <- symbol
+  string ">>"
+  return $ ContentVar s
 
 crefParser :: Parser String
 crefParser = many1 (noneOf "><")

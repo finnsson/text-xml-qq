@@ -81,6 +81,18 @@ case_var_as_name = expected @=? actual
     foo = "bar"
     expected = element { elName = QName "bar" Nothing Nothing }
 
+case_var_as_ns = expected @=? actual
+  where
+    actual = [$xmlQQ| <{foo}:apa>hej</{foo}:apa> |]
+    expected = element { elName = QName "apa" Nothing (Just "ape"), elContent = [CRef "hej"] }
+    foo = "ape"
+
+case_var_as_cref = expected @=? actual
+  where
+    actual = [$xmlQQ| <ape><<someVal>></ape> |]
+    expected = element { elName = QName "ape" Nothing Nothing, elContent = [CRef "apa"] }
+    someVal = CRef "apa"
+
 -- helpers
 
 element =
