@@ -73,6 +73,9 @@ xmlQQ = QuasiQuoter xmlExp xmlPat xmlType xmlDec
     where
       parsed' = parse xmlElementParser "txt" txt
 
+xmlFileQQ :: QuasiQuoter
+xmlFileQQ = quoteFile xmlQQ
+
 -- Data types to Exp
 
 elementToExp :: ElementMeta -> Exp
