@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell -XQuasiQuotes -XUndecidableInstances #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, UndecidableInstances #-}
 
 
 -- | The XML quasiquoter.
@@ -59,17 +59,19 @@ import Text.ParserCombinators.Parsec.Error
 
 
 xmlQQ :: QuasiQuoter
-xmlQQ = QuasiQuoter xmlExp xmlPat
-
-xmlPat = undefined
-
-xmlExp :: String -> ExpQ
-xmlExp txt =
-  case parsed' of 
-    Left err -> error $ "Error in jsonExp: " ++ show err
-    Right val -> return $ elementToExp val
+xmlQQ = QuasiQuoter xmlExp xmlPat xmlType xmlDec
   where
-    parsed' = parse xmlElementParser "txt" txt
+  xmlPat = undefined
+  xmlType = undefined
+  xmlDec = undefined
+
+  xmlExp :: String -> ExpQ
+  xmlExp txt =
+    case parsed' of 
+      Left err -> error $ "Error in jsonExp: " ++ show err
+      Right val -> return $ elementToExp val
+    where
+      parsed' = parse xmlElementParser "txt" txt
 
 -- Data types to Exp
 
