@@ -43,7 +43,7 @@
 --      >        cont1,
 --      >        cont2]
 --      >   }
-module Text.XML.QQ (xmlQQ) where
+module Text.XML.QQ (xmlQQ, xmlFileQQ) where
 
 -- import Text.XML.Light
 import qualified Text.XML.Light.Types as XT
